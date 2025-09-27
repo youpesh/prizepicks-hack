@@ -1,0 +1,3 @@
+[submodule "pulse-mock"]
+	path = pulse-mock
+	url = https://github.com/myprizepicks/pulse-mock.git

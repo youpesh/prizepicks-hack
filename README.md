@@ -29,7 +29,7 @@ npm run dev
 ```
 
 ### App routes
-- `/` — Live dashboard: Insight Cards with sparkline, confidence, reasons, risk dial, cooldowns
+- `/` — Insight Dashboard (Live video + AI overlay, Volatility list, Why Meter, Momentum heatmap)
 - `/reel` — Insight Reel: high‑severity alerts from the last minute
 
 ### How it works
@@ -42,3 +42,16 @@ npm run dev
 ### Notes
 - If Pulse Mock isn’t running, API proxy calls will fail. Start it first.
 - Submodule pinned at `pulse-mock` — ensure `git submodule update --init --recursive` after cloning.
+
+### Demo clips (TwelveLabs optional)
+- The Clip Highlights button uses `/api/clip`. By default it plays a local fallback video.
+- Place a short clip at `public/sample.mp4` to ensure an offline‑friendly demo.
+- Optional: set `TWELVELABS_API_KEY` in `.env.local` to enable real highlight lookup. The route will automatically use the key when available and fall back to the local clip otherwise.
+
+```bash
+cp path/to/your-clip.mp4 public/sample.mp4
+
+# optional
+cp .env.example .env.local
+echo "TWELVELABS_API_KEY=sk-..." >> .env.local
+```

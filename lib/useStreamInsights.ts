@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useUIStore } from "./store";
+import { insightBus } from "./bus";
 
 type WorkerMsg = {
   id: string;
@@ -57,6 +58,21 @@ export function useStreamInsights() {
           ...prev,
         ].slice(0, 20));
       }
+
+      // Publish to unified bus for UI cohesion
+      const [player_id, stat] = adjusted.id.split(":");
+      insightBus.publish({
+        id: adjusted.id,
+        ts: Date.now(),
+        player_id,
+        stat,
+        value: adjusted.value,
+        projection: adjusted.projection,
+        volatility: Math.abs(adjusted.z),
+        status: adjusted.status,
+        confidence: adjusted.confidence,
+        insight: adjusted.insight,
+      });
     };
     return () => {
       worker?.terminate();

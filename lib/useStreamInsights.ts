@@ -12,6 +12,7 @@ type WorkerMsg = {
   ewma: number;
   value: number;
   projection: number;
+  risk?: number;
 };
 
 export function useStreamInsights() {
@@ -22,7 +23,8 @@ export function useStreamInsights() {
   const sourceRef = useRef<EventSource | null>(null);
   const worker = useMemo(() => {
     if (typeof window === "undefined") return null as unknown as Worker;
-    return new Worker(new URL("./worker/analytics.ts", import.meta.url), { type: "module" });
+    // Use plain JS worker from public to avoid Turbopack HMR issues
+    return new Worker("/analytics-worker.js");
   }, []);
 
   const risk = useUIStore((s) => s.risk);
@@ -49,7 +51,7 @@ export function useStreamInsights() {
       });
       // naive calibration: when status is alert/warning, treat as prediction direction and check next tick proximity to projection
       setCalibration((prev) => ({ total: prev.total + 1, hits: prev.hits + (Math.abs(adjusted.value - adjusted.projection) < 5 ? 1 : 0) }));
-      if (adjusted.status === "alert") {
+      if (adjusted.status !== "normal") {
         setRecentAlerts((prev) => [{ id: adjusted.id, ts: Date.now(), insight: adjusted.insight, confidence: adjusted.confidence }, ...prev].slice(0, 20));
       }
     };

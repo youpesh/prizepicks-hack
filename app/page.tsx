@@ -9,6 +9,9 @@ import ControlsBar from "@/components/ControlsBar";
 import InsightCard from "@/components/InsightCard";
 import Calibration from "@/components/Calibration";
 import WhatIf from "@/components/WhatIf";
+import TopPicks from "@/components/TopPicks";
+import ActivePicks from "@/components/ActivePicks";
+import SlipBuilder from "@/components/SlipBuilder";
 import { useEffect, useState } from "react";
 import { getPlayers } from "@/lib/pulse";
 import { useStreamInsights } from "@/lib/useStreamInsights";
@@ -44,6 +47,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <Calibration total={stream.calibration.total} hits={stream.calibration.hits} />
             <WhatIf projection={26.5} />
+            <TopPicks />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <ActivePicks />
+            <SlipBuilder />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {players.slice(0, 6).map((p) => {
@@ -58,6 +66,7 @@ export default function Home() {
                   status={data?.status ?? "normal"}
                   series={series}
                   reasons={data?.reasons ?? []}
+                  risk={data?.risk ?? 0}
                 />
               );
             })}

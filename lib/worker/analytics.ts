@@ -36,11 +36,11 @@ function updateState(key: string, x: number): SeriesState {
   const delta = x - prev.mean;
   const mean = prev.mean + delta / count;
   const m2 = prev.m2 + delta * (x - mean);
-  const alpha = 0.3; // EWMA smoothing
+  const alpha = 0.25; // slightly smoother
   const ewma = prev.count === 0 ? x : alpha * x + (1 - alpha) * prev.ewma;
   // one-sided positive CUSUM for surges
-  const k = 0.3; // drift
-  const h = 3.0; // threshold
+  const k = 0.25; // drift
+  const h = 3.5; // higher threshold to reduce noise
   const s = Math.max(0, prev.cusum + (x - mean - k));
   const cusum = s > h ? 0 : s; // reset on detection
   const next = { count, mean, m2, ewma, cusum };
@@ -62,8 +62,8 @@ function buildInsight(key: string, x: number, projection: number, state: SeriesS
   const base = 100 * Math.exp(-0.5 * (disagreement / 5)) * Math.exp(-0.2 * volatility);
   const confidence = Math.max(0, Math.min(100, base));
   let status: InsightMsg["status"] = "normal";
-  if (z > 2 || confidence > 70) status = "alert";
-  else if (z > 1 || confidence > 40) status = "warning";
+  if (z > 2.2 || confidence > 75) status = "alert";
+  else if (z > 1.2 || confidence > 45) status = "warning";
   const insight = z > 1.8 ? "Momentum surge detected" : z < -1.8 ? "Momentum drop detected" : confidence > 60 ? "Stable edge" : "Stable";
   const reasons = [
     { feature: "z_score", direction: z >= 0 ? "up" : "down", magnitude: Math.abs(z) },

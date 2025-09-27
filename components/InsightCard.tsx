@@ -12,9 +12,10 @@ type InsightCardProps = {
   status?: "normal" | "warning" | "alert";
   series?: { t: number; v: number; m: number }[];
   reasons?: { feature: string; direction: "up" | "down"; magnitude?: number }[];
+  risk?: number;
 };
 
-export function InsightCard({ title, insight = "", confidence = 0, status = "normal", series = [], reasons = [] }: InsightCardProps) {
+export function InsightCard({ title, insight = "", confidence = 0, status = "normal", series = [], reasons = [], risk = 0 }: InsightCardProps) {
   const statusVariant = status === "alert" ? "destructive" : status === "warning" ? "secondary" : "outline";
 
   return (
@@ -37,6 +38,13 @@ export function InsightCard({ title, insight = "", confidence = 0, status = "nor
             ))}
           </div>
         ) : null}
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Early‑warning</span>
+            <span>{Math.round(risk)}%</span>
+          </div>
+          <Progress value={risk} />
+        </div>
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Confidence</span>

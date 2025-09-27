@@ -19,7 +19,7 @@ export function useStreamInsights() {
   const [data, setData] = useState<Record<string, WorkerMsg>>({});
   const [series, setSeries] = useState<Record<string, { t: number; v: number; m: number; p: number }[]>>({});
   const [calibration, setCalibration] = useState<{ total: number; hits: number }>(() => ({ total: 0, hits: 0 }));
-  const [recentAlerts, setRecentAlerts] = useState<{ id: string; ts: number; insight: string; confidence: number }[]>([]);
+  const [recentAlerts, setRecentAlerts] = useState<{ id: string; ts: number; insight: string; confidence: number; value?: number; projection?: number }[]>([]);
   const sourceRef = useRef<EventSource | null>(null);
   const worker = useMemo(() => {
     if (typeof window === "undefined") return null as unknown as Worker;
@@ -52,7 +52,10 @@ export function useStreamInsights() {
       // naive calibration: when status is alert/warning, treat as prediction direction and check next tick proximity to projection
       setCalibration((prev) => ({ total: prev.total + 1, hits: prev.hits + (Math.abs(adjusted.value - adjusted.projection) < 5 ? 1 : 0) }));
       if (adjusted.status !== "normal") {
-        setRecentAlerts((prev) => [{ id: adjusted.id, ts: Date.now(), insight: adjusted.insight, confidence: adjusted.confidence }, ...prev].slice(0, 20));
+        setRecentAlerts((prev) => [
+          { id: adjusted.id, ts: Date.now(), insight: adjusted.insight, confidence: adjusted.confidence, value: adjusted.value, projection: adjusted.projection },
+          ...prev,
+        ].slice(0, 20));
       }
     };
     return () => {

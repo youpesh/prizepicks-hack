@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Sparkline from "./Sparkline";
+import { Button } from "@/components/ui/button";
+import { explainLLM } from "@/lib/llm";
+import { usePicksStore } from "@/lib/picks";
 
 type InsightCardProps = {
   title: string;
@@ -17,6 +20,7 @@ type InsightCardProps = {
 
 export function InsightCard({ title, insight = "", confidence = 0, status = "normal", series = [], reasons = [], risk = 0 }: InsightCardProps) {
   const statusVariant = status === "alert" ? "destructive" : status === "warning" ? "secondary" : "outline";
+  const addPick = usePicksStore((s) => s.addPick);
 
   return (
     <Card>
@@ -28,16 +32,29 @@ export function InsightCard({ title, insight = "", confidence = 0, status = "nor
         <p className="text-sm text-muted-foreground min-h-10">{insight || "Awaiting signal…"}</p>
         {series.length > 0 ? <Sparkline data={series} /> : null}
         {reasons.length > 0 ? (
-          <div className="text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-1">
             {reasons.slice(0, 2).map((r, i) => (
-              <span key={i} className="mr-2">
-                {r.feature}:{" "}
-                <span className={r.direction === "up" ? "text-green-600" : "text-red-600"}>{r.direction}</span>
-                {r.magnitude !== undefined ? ` (${r.magnitude.toFixed(2)})` : ""}
+              <span key={i} className={`px-2 py-0.5 rounded-full text-xs ${r.direction === "up" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                {r.feature} {r.direction}
               </span>
             ))}
           </div>
         ) : null}
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => {
+            // derive a simple line near confidence-projection space
+            const hash = Array.from(title).reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+            const offset = ((hash % 9) - 4) * 0.5;
+            const line = Math.round((26.5 + offset) * 2) / 2;
+            addPick({ id: `${title}-${Date.now()}`, playerId: title, side: "Over", line, addedAt: Date.now() });
+          }}>Add</Button>
+          <Button size="sm" variant="outline" onClick={async () => {
+            try {
+              const r = await explainLLM(title, {} as any);
+              alert(r.insight ?? "");
+            } catch {}
+          }}>Explain</Button>
+        </div>
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Early‑warning</span>

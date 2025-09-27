@@ -32,7 +32,11 @@ function buildInsight(key, x, projection, state) {
   const base = 100 * Math.exp(-0.5 * (disagreement / 5)) * Math.exp(-0.2 * volatility);
   const confidence = Math.max(0, Math.min(100, base));
   // early-warning risk: combine |z| and volatility and cusum magnitude
-  const risk = Math.max(0, Math.min(100, Math.round(Math.min(100, Math.abs(z) * 25 + volatility * 50 + Math.min(state.cusum * 10, 25)))));
+  // Softer scaling so meter doesn't peg at 100%
+  const risk = Math.max(
+    0,
+    Math.min(100, Math.round(Math.abs(z) * 15 + volatility * 30 + Math.min(state.cusum * 8, 20)))
+  );
   let status = "normal";
   if (z > 2.2 || confidence > 75 || risk > 70) status = "alert";
   else if (z > 1.2 || confidence > 45 || risk > 45) status = "warning";

@@ -11,11 +11,14 @@ type WorkerMsg = {
   z: number;
   ewma: number;
   value: number;
+  projection: number;
 };
 
 export function useStreamInsights() {
   const [data, setData] = useState<Record<string, WorkerMsg>>({});
-  const [series, setSeries] = useState<Record<string, { t: number; v: number; m: number }[]>>({});
+  const [series, setSeries] = useState<Record<string, { t: number; v: number; m: number; p: number }[]>>({});
+  const [calibration, setCalibration] = useState<{ total: number; hits: number }>(() => ({ total: 0, hits: 0 }));
+  const [recentAlerts, setRecentAlerts] = useState<{ id: string; ts: number; insight: string; confidence: number }[]>([]);
   const sourceRef = useRef<EventSource | null>(null);
   const worker = useMemo(() => {
     if (typeof window === "undefined") return null as unknown as Worker;
@@ -42,8 +45,13 @@ export function useStreamInsights() {
       setData((prev) => ({ ...prev, [adjusted.id]: adjusted }));
       setSeries((prev) => {
         const arr = prev[adjusted.id]?.slice(-59) ?? [];
-        return { ...prev, [adjusted.id]: [...arr, { t: Date.now(), v: adjusted.value, m: adjusted.ewma }] };
+        return { ...prev, [adjusted.id]: [...arr, { t: Date.now(), v: adjusted.value, m: adjusted.ewma, p: adjusted.projection }] };
       });
+      // naive calibration: when status is alert/warning, treat as prediction direction and check next tick proximity to projection
+      setCalibration((prev) => ({ total: prev.total + 1, hits: prev.hits + (Math.abs(adjusted.value - adjusted.projection) < 5 ? 1 : 0) }));
+      if (adjusted.status === "alert") {
+        setRecentAlerts((prev) => [{ id: adjusted.id, ts: Date.now(), insight: adjusted.insight, confidence: adjusted.confidence }, ...prev].slice(0, 20));
+      }
     };
     return () => {
       worker?.terminate();
@@ -66,7 +74,7 @@ export function useStreamInsights() {
     };
   }, [worker]);
 
-  return { latest: data, series };
+  return { latest: data, series, calibration, recentAlerts };
 }
 
 

@@ -7,6 +7,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import ControlsBar from "@/components/ControlsBar";
 import InsightCard from "@/components/InsightCard";
+import Calibration from "@/components/Calibration";
+import WhatIf from "@/components/WhatIf";
 import { useEffect, useState } from "react";
 import { getPlayers } from "@/lib/pulse";
 import { useStreamInsights } from "@/lib/useStreamInsights";
@@ -38,6 +40,10 @@ export default function Home() {
         <TabsContent value="live" className="mt-0">
           <div className="mb-4">
             <ControlsBar />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <Calibration total={stream.calibration.total} hits={stream.calibration.hits} />
+            <WhatIf projection={26.5} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {players.slice(0, 6).map((p) => {

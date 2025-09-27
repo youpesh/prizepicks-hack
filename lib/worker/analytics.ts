@@ -17,6 +17,7 @@ export type InsightMsg = {
   ewma: number;
   value: number;
   reasons?: { feature: string; direction: "up" | "down"; magnitude?: number }[];
+  projection: number;
 };
 
 type SeriesState = {
@@ -68,7 +69,7 @@ function buildInsight(key: string, x: number, projection: number, state: SeriesS
     { feature: "z_score", direction: z >= 0 ? "up" : "down", magnitude: Math.abs(z) },
     { feature: "ewma_delta", direction: x - state.ewma >= 0 ? "up" : "down", magnitude: Math.abs(x - state.ewma) },
   ];
-  return { id: key, insight, confidence, status, z, ewma: state.ewma, value: x, reasons };
+  return { id: key, insight, confidence, status, z, ewma: state.ewma, value: x, reasons, projection };
 }
 
 self.onmessage = (e: MessageEvent<Event>) => {

@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Pulse — Why + What‑If + Early Warning
 
-## Getting Started
+Real‑time sports insight engine powered by Pulse Mock. Explains what changed, why it changed, what happens next, and how confident we are.
 
-First, run the development server:
+### Stack
+- Next.js App Router, TypeScript, Tailwind, shadcn/ui
+- Recharts for sparklines
+- SSE stream + Web Worker (EWMA, z‑score, simple CUSUM, confidence)
+- Pulse Mock submodule for stable REST data
 
+### Setup
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/youpesh/prizepicks-hack.git
+cd prizepicks-hack
+git submodule update --init --recursive
+
+# Pulse Mock server
+cd pulse-mock
+python -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt && pip install -e .
+python -m pulse_mock.server --host localhost --port 1339 --debug
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+In a new terminal:
+```bash
+cd prizepicks-hack
+npm i
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### App routes
+- `/` — Live dashboard: Insight Cards with sparkline, confidence, reasons, risk dial, cooldowns
+- `/reel` — Insight Reel: high‑severity alerts from the last minute
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### How it works
+- SSE endpoint emits player stat events (seeded surges for demo)
+- Worker computes rolling baselines, z/CUSUM, and confidence
+- UI renders succinct insight text, reasons, and evidence sparkline
+- Calibration widget shows expected vs realized accuracy live
+- What‑If sliders show instant projection deltas for pace/usage
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Notes
+- If Pulse Mock isn’t running, API proxy calls will fail. Start it first.
+- Submodule pinned at `pulse-mock` — ensure `git submodule update --init --recursive` after cloning.
